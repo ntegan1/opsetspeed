@@ -5,6 +5,7 @@ module.exports = {
     ...[...Array(60).keys()].flatMap(i => [`w-[${i}px]`, `h-[${i}px]`]),
     ...[...Array(512).keys()].flatMap(i => [`bottom-[${i}px]`, `right-[${i}px]`, `left-[${i}px]`, `top-[${i}px]`]),
     'float-right',
+    'overflow-hidden',
     'relative',
     'bg-modal/40',
     {
