@@ -39,35 +39,38 @@ function Slider() {
   const vmin = 0
   const vmax = 28
   const [value, setValue] = useState(vmax)
-  //const int_loop = () => { sendv(value); }
-  //const onclick = (e) => {setValue(vmax); sendv(vmax) }
-  //const onchange = (e) => {const f = e.target.valueAsNumber; setValue(f); sendv(f)}
-  //const [done, setDone] = useState(true)
-  //const sendalways = (v) => {
-  //  try {
-  //    fetch(url + "/control/0/" + v, {cache: "no-store", mode:"no-cors", method: "GET", keepalive: true}).then(() => {
-  //      setDone(true)
-  //    }).catch((e) => {
-  //      setDone(true)
-  //    })
-  //  }
-  //  catch (e) {
-  //    setDone(true)
-  //  }
-  //}
-  //const sendv = (v) => {
-  //  // only send if done
-  //  if (!done) { console.log("wait"); return }
-  //  setDone(false)
-  //  sendalways(v)
-  //}
+  const int_loop = () => { sendv(value); }
+  const onclick = (e) => {setValue(vmax); sendv(vmax) }
+  const onchange = (e) => {const f = e.target.valueAsNumber; setValue(f); sendv(f)}
+  const [done, setDone] = useState(true)
+  const sendalways = (v) => {
+    try {
+      fetch(url + "/control/0/" + v, {cache: "no-store", mode:"no-cors", method: "GET", keepalive: true}).then(() => {
+        setDone(true)
+      }).catch((e) => {
+        setDone(true)
+      })
+    }
+    catch (e) {
+      setDone(true)
+    }
+  }
+  const sendv = (v) => {
+    console.log("send")
+    return
+    // only send if done
+    if (!done) { console.log("wait"); return }
+    setDone(false)
+    sendalways(v)
+  }
   const c = "[&::-webkit-slider-thumb]:bg-nord8 [&::-webkit-slider-thumb]:w-12 [&::-webkit-slider-thumb]:h-12 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:[appearance:none] [&::-webkit-slider-thumb]:[-webkit-appearance:none] [-webkit-user-select:none] -translate-x-[134px] translate-y-[134px] -rotate-90 h-[32px] w-[300px] bg-gray-700 rounded-lg appearance-none cursor-pointer "
   //useInterval(int_loop, 200)
+  useInterval(int_loop, 1000)
   useEffect(() => {
-    //sendalways(vmax)
+    sendalways(vmax)
     console.log("reload")
     return () => {
-      //sendalways(vmax)
+      sendalways(vmax)
       console.log("unmount")
     }
   }, [])
