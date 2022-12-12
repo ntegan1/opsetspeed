@@ -1,0 +1,7 @@
+## inter proces comm with openpilot
+from this flask server to where set speed
+should be hooked/injected/taken over inside op code.
+
+### old patch
+inside dat is old patch for injecting into op.
+replace that and improve with code from 0shmserver.py

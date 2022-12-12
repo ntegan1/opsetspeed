@@ -1,0 +1,261 @@
+From f6365ab2708df35e305a6aad9751d6a4ace2c483 Mon Sep 17 00:00:00 2001
+From: nick <nick@egan.gg>
+Date: Sun, 11 Dec 2022 17:29:28 -0500
+Subject: [PATCH] phone set-speed braking v1
+
+start setspeed api server
+
+webpy done
+
+.
+
+savepatch
+
+good but really wrong file this time, again lol
+
+override?
+
+.
+
+f
+
+max y yay
+
+.
+
+js
+---
+ selfdrive/car/toyota/carstate.py        | 44 ++++++++++++++++++++-
+ selfdrive/controls/lib/desire_helper.py | 28 +++++++++++++-
+ selfdrive/manager/process_config.py     |  1 -
+ tools/joystick/web.py                   | 51 +++++++++++++++----------
+ 4 files changed, 99 insertions(+), 25 deletions(-)
+
+diff --git a/selfdrive/car/toyota/carstate.py b/selfdrive/car/toyota/carstate.py
+index 3be748c4c..71be4a431 100644
+--- a/selfdrive/car/toyota/carstate.py
++++ b/selfdrive/car/toyota/carstate.py
+@@ -9,9 +9,41 @@ from selfdrive.car.interfaces import CarStateBase
+ from selfdrive.car.toyota.values import ToyotaFlags, DBC, STEER_THRESHOLD, NO_STOP_TIMER_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE, UNSUPPORTED_DSU_CAR
+ 
+ 
++f_count = 0
++f_fn = "/data/openpilot/.f"
++f_div = 10 # every 10 cc frames?
++f_mph = None
++def f_read():
++  global f_count
++  global f_fn
++  global f_div
++  global f_mph
++  if f_count > f_div:
++    f_count = 0
++    try:
++      with open(f_fn, "r") as f:
++        maybe = float(f.read())
++        f_mph = maybe
++    except:
++      f_mph = None
++  else:
++    f_count += 1
++  return f_mph
++def f_reset():
++  global f_count
++  global f_fn
++  global f_div
++  global f_mph
++  f_mph = None
++  with open(f_fn, "w+") as f:
++    f.seek(0)
++    f.write("f")
++
++
+ class CarState(CarStateBase):
+   def __init__(self, CP):
+     super().__init__(CP)
++    f_reset()
+     can_define = CANDefine(DBC[CP.carFingerprint]["pt"])
+     self.shifter_values = can_define.dv["GEAR_PACKET"]["GEAR"]
+     self.eps_torque_scale = EPS_SCALE[CP.carFingerprint] / 100.
+@@ -28,6 +60,10 @@ class CarState(CarStateBase):
+     self.acc_type = 1
+ 
+   def update(self, cp, cp_cam):
++    global f_count
++    global f_fn
++    global f_div
++    global f_mph
+     ret = car.CarState.new_message()
+ 
+     ret.doorOpen = any([cp.vl["BODY_CONTROL_STATE"]["DOOR_OPEN_FL"], cp.vl["BODY_CONTROL_STATE"]["DOOR_OPEN_FR"],
+@@ -102,9 +138,15 @@ class CarState(CarStateBase):
+       ret.cruiseState.available = cp.vl["PCM_CRUISE_2"]["MAIN_ON"] != 0
+       ret.cruiseState.speed = cp.vl["PCM_CRUISE_2"]["SET_SPEED"] * CV.KPH_TO_MS
+       cluster_set_speed = cp.vl["PCM_CRUISE_SM"]["UI_SET_SPEED"]
++    z = f_read()
++    override = z is not None
++    if override:
++      z_mps = z * CV.MPH_TO_MS
++      ret.cruiseState.speed = z_mps
++      ret.cruiseState.speedCluster = z_mps
+ 
+     # UI_SET_SPEED is always non-zero when main is on, hide until first enable
+-    if ret.cruiseState.speed != 0:
++    if ret.cruiseState.speed != 0 and not override:
+       is_metric = cp.vl["BODY_CONTROL_STATE_2"]["UNITS"] in (1, 2)
+       conversion_factor = CV.KPH_TO_MS if is_metric else CV.MPH_TO_MS
+       ret.cruiseState.speedCluster = cluster_set_speed * conversion_factor
+diff --git a/selfdrive/controls/lib/desire_helper.py b/selfdrive/controls/lib/desire_helper.py
+index 4790b8f0e..b5a5eefe7 100644
+--- a/selfdrive/controls/lib/desire_helper.py
++++ b/selfdrive/controls/lib/desire_helper.py
+@@ -5,9 +5,30 @@ from common.realtime import DT_MDL
+ LaneChangeState = log.LateralPlan.LaneChangeState
+ LaneChangeDirection = log.LateralPlan.LaneChangeDirection
+ 
+-LANE_CHANGE_SPEED_MIN = 20 * CV.MPH_TO_MS
++LANE_CHANGE_SPEED_MIN = 1 * CV.MPH_TO_MS
+ LANE_CHANGE_TIME_MAX = 10.
+ 
++DESIRES2 = {
++  LaneChangeDirection.none: {
++    LaneChangeState.off: log.LateralPlan.Desire.none,
++    LaneChangeState.preLaneChange: log.LateralPlan.Desire.none,
++    LaneChangeState.laneChangeStarting: log.LateralPlan.Desire.none,
++    LaneChangeState.laneChangeFinishing: log.LateralPlan.Desire.none,
++  },
++  LaneChangeDirection.left: {
++    LaneChangeState.off: log.LateralPlan.Desire.none,
++    LaneChangeState.preLaneChange: log.LateralPlan.Desire.none,
++    LaneChangeState.laneChangeStarting: log.LateralPlan.Desire.turnLeft,
++    LaneChangeState.laneChangeFinishing: log.LateralPlan.Desire.turnLeft,
++  },
++  LaneChangeDirection.right: {
++    LaneChangeState.off: log.LateralPlan.Desire.none,
++    LaneChangeState.preLaneChange: log.LateralPlan.Desire.none,
++    LaneChangeState.laneChangeStarting: log.LateralPlan.Desire.turnRight,
++    LaneChangeState.laneChangeFinishing: log.LateralPlan.Desire.turnRight,
++  },
++}
++
+ DESIRES = {
+   LaneChangeDirection.none: {
+     LaneChangeState.off: log.LateralPlan.Desire.none,
+@@ -100,7 +121,10 @@ class DesireHelper:
+ 
+     self.prev_one_blinker = one_blinker
+ 
+-    self.desire = DESIRES[self.lane_change_direction][self.lane_change_state]
++    if v_ego < 20. * CV.MPH_TO_MS:
++      self.desire = DESIRES2[self.lane_change_direction][self.lane_change_state]
++    else:
++      self.desire = DESIRES[self.lane_change_direction][self.lane_change_state]
+ 
+     # Send keep pulse once per second during LaneChangeStart.preLaneChange
+     if self.lane_change_state in (LaneChangeState.off, LaneChangeState.laneChangeStarting):
+diff --git a/selfdrive/manager/process_config.py b/selfdrive/manager/process_config.py
+index c03e99549..020d37c94 100644
+--- a/selfdrive/manager/process_config.py
++++ b/selfdrive/manager/process_config.py
+@@ -56,7 +56,6 @@ procs = [
+   PythonProcess("thermald", "selfdrive.thermald.thermald", offroad=True),
+   PythonProcess("tombstoned", "selfdrive.tombstoned", enabled=not PC, offroad=True),
+   PythonProcess("updated", "selfdrive.updated", enabled=not PC, onroad=False, offroad=True),
+-  PythonProcess("uploader", "selfdrive.loggerd.uploader", offroad=True),
+   PythonProcess("statsd", "selfdrive.statsd", offroad=True),
+ 
+   # debug procs
+diff --git a/tools/joystick/web.py b/tools/joystick/web.py
+index 5cba4e938..24b08bbe4 100755
+--- a/tools/joystick/web.py
++++ b/tools/joystick/web.py
+@@ -3,10 +3,7 @@ import time
+ import threading
+ from flask import Flask
+ 
+-import cereal.messaging as messaging
+-
+ app = Flask(__name__)
+-pm = messaging.PubMaster(['testJoystick'])
+ 
+ index = """
+ <html>
+@@ -27,15 +24,13 @@ window.addEventListener("gamepaddisconnected", function(e) {
+ // Create JoyStick object into the DIV 'joyDiv'
+ var joy = new JoyStick('joyDiv');
+ setInterval(function(){
+-  var x = -joy.GetX()/100;
+   var y = joy.GetY()/100;
+-  if (x === 0 && y === 0 && gamepad !== null) {
++  if (y === 0 && gamepad !== null) {
+     let gamepadstate = navigator.getGamepads()[gamepad.index];
+-    x = -gamepadstate.axes[0];
+     y = -gamepadstate.axes[1];
+   }
+   let xhr = new XMLHttpRequest();
+-  xhr.open("GET", "/control/"+x+"/"+y);
++  xhr.open("GET", "/control/"+y);
+   xhr.send();
+ }, 50);
+ </script>
+@@ -45,17 +40,28 @@ setInterval(function(){
+ def hello_world():
+   return index
+ 
++max_y = 0.
+ last_send_time = time.monotonic()
+-@app.route("/control/<x>/<y>")
+-def control(x, y):
++@app.route("/control/<y>")
++def control(y):
++  global max_y
++  out_file_name = "/data/openpilot/.f"
+   global last_send_time
+-  x,y = float(x), float(y)
+-  x = max(-1, min(1, x))
+-  y = max(-1, min(1, y))
+-  dat = messaging.new_message('testJoystick')
+-  dat.testJoystick.axes = [y,x]
+-  dat.testJoystick.buttons = [False]
+-  pm.send('testJoystick', dat)
++  y = float(y)
++  ay = abs(y)
++  if ay > max_y:
++    max_y = ay
++  min_set_speed = 0
++  max_set_speed = 22 # mph
++  out = "f"
++  if not (y == 0.):
++    y = (max(-max_y, min(max_y, y)) + max_y) / (2. * max_y) # 0. to 1.
++    y = y * (min_set_speed + max_set_speed) + min_set_speed
++    y = round(y, 1)
++    out = "" + str(y)
++  with open(out_file_name, "w+") as f:
++    f.seek(0)
++    f.write(out)
+   last_send_time = time.monotonic()
+   return ""
+ 
+@@ -63,11 +69,14 @@ def handle_timeout():
+   while 1:
+     this_time = time.monotonic()
+     if (last_send_time+0.5) < this_time:
+-      #print("timeout, no web in %.2f s" % (this_time-last_send_time))
+-      dat = messaging.new_message('testJoystick')
+-      dat.testJoystick.axes = [0,0]
+-      dat.testJoystick.buttons = [False]
+-      pm.send('testJoystick', dat)
++      global max_y
++      max_y = 0.
++      out = "f"
++      out_file_name = "/data/openpilot/.f"
++      with open(out_file_name, "w+") as f:
++        f.seek(0)
++        f.write(out)
++      print("timeout, no web in %.2f s" % (this_time-last_send_time))
+     time.sleep(0.1)
+ 
+ def main():
+-- 
+2.25.1
+
