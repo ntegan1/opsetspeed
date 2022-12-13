@@ -41,41 +41,52 @@ function Slider() {
   }
   const pingServer = () => {
     try {
-      fetch(url + "/ping", {cache: "no-store", mode:"no-cors", method: "GET", keepalive: true}).then((res) => {
+      fetch(url + "/ping", {cache: "no-store", mode:"cors", method: "GET", keepalive: true}).then(res => {
         setDone(true)
         if (res.status === 200) {
+          console.log("ping success")
           setServerRunning(true)
+          setIntervalDelay(sendingDelay)
         }
       }).catch((e) => {
+        console.log("catch3")
         setDone(true)
       })
     }
     catch (e) {
+      console.log("catch4")
       setDone(true)
     }
   }
   const sendalways = (v) => {
     try {
-      fetch(url + "/control/" + v, {cache: "no-store", mode:"no-cors", method: "GET", keepalive: true}).then((res) => {
+      fetch(url + "/control/" + v, {cache: "no-store", mode:"cors", method: "GET", keepalive: true}).then((res) => {
         if (res.status !== 200) {
           setServerRunning(false)
+          setIntervalDelay(waitingDelay)
         }
         setDone(true)
       }).catch((e) => {
+        console.log("catch1")
         setDone(true)
+        setIntervalDelay(waitingDelay)
         setServerRunning(false)
       })
     }
     catch (e) {
+      console.log("catch2")
       setServerRunning(false)
+      setIntervalDelay(waitingDelay)
       setDone(true)
     }
   }
   const check_server_running = () => {
     console.log("no server")
+    pingServer()
   }
   const sendv = (v) => {
     if (!serverRunning) {
+      setDone(false)
       check_server_running()
       return
     }

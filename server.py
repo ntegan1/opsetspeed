@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import time
 import threading
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, Response
 from opsetspeed.shminject import Mem
 
 build_dir="./build"
@@ -18,7 +18,10 @@ def a():
 
 @app.route("/ping")
 def c():
-  return ""
+  #response = flask.jsonify({'some': 'data'})
+  response = Response("", status=200,)
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  return response
 
 last_send_time = time.monotonic()
 @app.route("/control/<y>")
@@ -28,9 +31,9 @@ def control(y):
   if y > 0 and y <= vmax:
     mem.set(y)
     last_send_time = time.monotonic()
-    return ""
-  else:
-    return ""
+  response = Response("", status=200,)
+  response.headers.add('Access-Control-Allow-Origin', '*')
+  return response
 
 @app.route("/<path:name>")
 def b(name):
