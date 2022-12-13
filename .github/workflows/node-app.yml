@@ -1,0 +1,44 @@
+name: Node.js CI
+run-name: ${{ github.actor }} is building nodejs stuff 🚀
+
+on: [push]
+#on:
+#  push:
+#    branches: [ main ]
+#  pull_request:
+#    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app
+    strategy:
+      matrix:
+        node-version: [19.x]
+        #node-version: [10.x, 12.x, 14.x, 15.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm run build
+      - run: tar -czvf build.tgz build
+      - run: mkdir fax
+      - run: mv build fax
+      - run: mv build.tgz fax
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: buildtgz
+          path: app/fax
+          #path: |
+          #  build.tgz
+          #  !build
+      #- run: npm ci
+      #- run: npm run build --if-present
+      #- run: npm test
