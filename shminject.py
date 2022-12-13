@@ -1,11 +1,26 @@
 #!/usr/bin/env python3
 
-
-## TODO:
-# use this instead of file read/write to share setspeed with op
-
+from common.conversions import Conversions as CV
 from multiprocessing import shared_memory
 import atexit
+
+class Hook:
+  mem = None
+  def update(self, rcs, rcsc):
+    vmaxmps = self.mem.vinit * CV.MPH_TO_MS
+    # ret cruisestate speed and speed cluster
+    a = rcs
+    b = rcsc
+
+    if b <= vmaxmps:
+      vmph = self.mem.get()
+      if vmph <= b:
+        vmps = vmph * CV.MPH_TO_MS
+        a = vmps
+        b = vmps
+    return a, b
+  def __init__(self):
+    self.mem = Mem(autounlink=True)
 
 class Mem:
   __mem = None
