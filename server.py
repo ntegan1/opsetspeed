@@ -35,6 +35,11 @@ def control(y):
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
 
+# maybe use this instead
+#@app.route('/', defaults={'path': ''})
+#@app.route('/<path:path>')
+#def catch_all(path):
+#    return 'You want path: %s' % path
 @app.route("/<path:name>")
 def b(name):
   allowed = name in allowed_build
