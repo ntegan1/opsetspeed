@@ -6,26 +6,23 @@ import atexit
 
 class Hook:
   mem = None
-  def update(self, rcs, rcsc):
+  def update(self, v_cruise_mps):
     vmaxmps = self.mem.vinit * CV.MPH_TO_MS
-    # ret cruisestate speed and speed cluster
-    a = rcs
-    b = rcsc
+    if v_cruise_mps * CV.MS_TO_MPH > vmaxmps:
+      return v_cruise_mps
 
-    if b <= vmaxmps:
-      vmph = self.mem.get()
-      if vmph <= b:
-        vmps = vmph * CV.MPH_TO_MS
-        a = vmps
-        b = vmps
-    return a, b
+    vmph = self.mem.get()
+    if vmph <= v_cruise_mps:
+      vmps = vmph * CV.MPH_TO_MS
+      return vmps
+    return v_cruise_mps
   def __init__(self):
     self.mem = Mem(autounlink=True)
 
 class Mem:
   __mem = None
   name = "fff"
-  size = 1
+  size = 2 # just in case i start testing this at same time as maneuver thing
   vinit = 28 # vmax
   def set(self, v):
     #buf[:4] = bytearray([22, 33, 44, 55])
@@ -33,7 +30,10 @@ class Mem:
   def get(self):
     return self.__mem.buf[0]
   def __create_or_connect(self):
-    self.__mem = shared_memory.SharedMemory(name=self.name, create=True, size=self.size)
+    try:
+      self.__mem = shared_memory.SharedMemory(name=self.name, create=True, size=self.size)
+    except:
+      self.__mem = shared_memory.SharedMemory(name=self.name, create=False, size=self.size)
   def __cleanup(self):
     self.__mem.close()
     if self.__shouldunlink:
