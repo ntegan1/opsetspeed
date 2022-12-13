@@ -100,6 +100,14 @@ function Slider() {
       console.log("unmount")
     }
   }, [])
+  if (!serverRunning)
+    return (
+      <>
+        <button className={"font-bold mt-4 w-64 h-24 rounded-3xl bg-nord11"}>
+          <p className="text-nord1 text-2xl">Waiting for Server</p>
+        </button>
+      </>
+    )
   return (
     <>
       <div className="h-[300px] w-[32px] mt-4">
