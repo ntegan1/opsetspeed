@@ -44,17 +44,14 @@ function Slider() {
       fetch(url + "/ping", {cache: "no-store", mode:"cors", method: "GET", keepalive: true}).then(res => {
         setDone(true)
         if (res.status === 200) {
-          console.log("ping success")
           setServerRunning(true)
           setIntervalDelay(sendingDelay)
         }
       }).catch((e) => {
-        console.log("catch3")
         setDone(true)
       })
     }
     catch (e) {
-      console.log("catch4")
       setDone(true)
     }
   }
@@ -67,14 +64,12 @@ function Slider() {
         }
         setDone(true)
       }).catch((e) => {
-        console.log("catch1")
         setDone(true)
         setIntervalDelay(waitingDelay)
         setServerRunning(false)
       })
     }
     catch (e) {
-      console.log("catch2")
       setServerRunning(false)
       setIntervalDelay(waitingDelay)
       setDone(true)
