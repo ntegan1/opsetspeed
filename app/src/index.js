@@ -12,6 +12,8 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
+// finished some of the tut
+//https://reactrouter.com/en/main/start/tutorial
 const router = createBrowserRouter([
   {
     path: "/",
