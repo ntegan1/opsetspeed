@@ -6,19 +6,16 @@ import atexit
 
 class Hook:
   mem = None
-  def update(self, rcs, rcsc):
+  def update(self, v_cruise_mps):
     vmaxmps = self.mem.vinit * CV.MPH_TO_MS
-    # ret cruisestate speed and speed cluster
-    a = rcs
-    b = rcsc
+    if v_cruise_mps * CV.MS_TO_MPH > vmaxmps:
+      return v_cruise_mps
 
-    if b <= vmaxmps:
-      vmph = self.mem.get()
-      if vmph <= b:
-        vmps = vmph * CV.MPH_TO_MS
-        a = vmps
-        b = vmps
-    return a, b
+    vmph = self.mem.get()
+    if vmph <= v_cruise_mps:
+      vmps = vmph * CV.MPH_TO_MS
+      return vmps
+    return v_cruise_mps
   def __init__(self):
     self.mem = Mem(autounlink=True)
 
