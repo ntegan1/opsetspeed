@@ -1,6 +1,7 @@
 
 
 
+# TODO make action only run on master so dont get weird branch artifacts
 #https://stackoverflow.com/questions/60789862/url-of-the-last-artifact-of-a-github-action-build
 all:
 #  ntegan@ideapad:~$ curl -s https://api.github.com/repos/ntegan1/opsetspeed/actions/artifacts\?per_page\=1 | jq '[.artifacts[] | {name : .name, archive_download_url : .archive_download_url}]' | jq -r '.[]'
