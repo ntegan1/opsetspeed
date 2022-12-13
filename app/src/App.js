@@ -21,7 +21,8 @@ function useInterval(callback, delay) {
 }
 
 function Slider() {
-  const url = "http://192.168.1.122:5000"
+  const url = ""
+  //const url = "http://192.168.1.122:5000"
   const vmin = 0
   const vmax = 28
   const sendingDelay = 200
@@ -99,6 +100,7 @@ function Slider() {
       sendalways(vmax)
       console.log("unmount")
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   if (!serverRunning)
     return (
