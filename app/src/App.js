@@ -24,15 +24,28 @@ function Slider() {
   const url = "http://192.168.1.122:5000"
   const vmin = 0
   const vmax = 28
+  const sendingDelay = 200
+  const waitingDelay = 1200
   const [value, setValue] = useState(vmax)
-  const int_loop = () => { console.log("tick"); sendv(value); }
+  const [serverRunning, setServerRunning] = useState(false)
+  const [intervalDelay, setIntervalDelay] = useState(waitingDelay)
+  const int_loop = () => { sendv(value); }
   const onclick = (e) => {setValue(vmax); sendv(vmax) }
   const onchange = (e) => {const f = e.target.valueAsNumber; setValue(f); sendv(f)}
   const [done, setDone] = useState(true)
-  const sendalways = (v) => {
+  const sendalwaysish = (v) => {
+    if (!serverRunning) {
+      return
+    }
+    sendalways(v)
+  }
+  const pingServer = () => {
     try {
-      fetch(url + "/control/0/" + v, {cache: "no-store", mode:"no-cors", method: "GET", keepalive: true}).then(() => {
+      fetch(url + "/ping", {cache: "no-store", mode:"no-cors", method: "GET", keepalive: true}).then((res) => {
         setDone(true)
+        if (res.status === 200) {
+          setServerRunning(true)
+        }
       }).catch((e) => {
         setDone(true)
       })
@@ -41,16 +54,40 @@ function Slider() {
       setDone(true)
     }
   }
+  const sendalways = (v) => {
+    try {
+      fetch(url + "/control/" + v, {cache: "no-store", mode:"no-cors", method: "GET", keepalive: true}).then((res) => {
+        if (res.status !== 200) {
+          setServerRunning(false)
+        }
+        setDone(true)
+      }).catch((e) => {
+        setDone(true)
+        setServerRunning(false)
+      })
+    }
+    catch (e) {
+      setServerRunning(false)
+      setDone(true)
+    }
+  }
+  const check_server_running = () => {
+    console.log("no server")
+  }
   const sendv = (v) => {
+    if (!serverRunning) {
+      check_server_running()
+      return
+    }
     // only send if done
     if (!done) { console.log("wait"); return }
     setDone(false)
     sendalways(v)
   }
   const c = "[&::-webkit-slider-thumb]:bg-nord8 [&::-webkit-slider-thumb]:w-12 [&::-webkit-slider-thumb]:h-12 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:[appearance:none] [&::-webkit-slider-thumb]:[-webkit-appearance:none] [-webkit-user-select:none] -translate-x-[134px] translate-y-[134px] -rotate-90 h-[32px] w-[300px] bg-gray-700 rounded-lg appearance-none cursor-pointer "
-  useInterval(int_loop, 200)
+  useInterval(int_loop, intervalDelay)
   useEffect(() => {
-    sendalways(vmax)
+    sendalwaysish(vmax)
     console.log("reload")
     return () => {
       sendalways(vmax)
