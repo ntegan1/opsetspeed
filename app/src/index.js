@@ -5,6 +5,7 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 
 import Root from './routes/root';
+import Contact from './routes/contact';
 import ErrorPage from './route-error-page'
 
 import {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
     element: <Root />,
     errorElement: <ErrorPage />,
   },
+	{
+		path: "/contacts/:contactId",
+    element: <Contact />,
+	},
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
