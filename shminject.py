@@ -26,7 +26,7 @@ class Mem:
   def __init__(self, autounlink=False):
     self.__shouldunlink = autounlink
     self.__create_or_connect()
-    self.set(self.vinit)
+    self.set(self.vinit) # todo maybe dont always do this
     atexit.register(self.__cleanup)
 
 def main():
