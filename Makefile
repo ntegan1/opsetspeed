@@ -6,6 +6,6 @@ all:
 	$(RM) -r build
 	$(RM) buildtgz.zip
 	wget $(link)
-	unzip buildtgz.zip
+	./unzip
 	$(RM) buildtgz.zip
 	$(RM) build.tgz
