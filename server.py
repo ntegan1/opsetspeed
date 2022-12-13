@@ -2,32 +2,35 @@
 import time
 import threading
 from flask import Flask, send_from_directory
-
-import cereal.messaging as messaging
+from opsetspeed.shminject import Mem
 
 build_dir="./build"
 static_dir=build_dir + "/static"
 allowed_build = ["asset-manifest.json", "favicon.ico", "logo192.png", "logo512.png", "robots.txt"]
 app = Flask(__name__, static_folder=static_dir)
-pm = messaging.PubMaster(['testJoystick'])
+
+mem = Mem()
+vmax = 28
 
 @app.route("/")
 def a():
   return send_from_directory(build_dir, "index.html")
 
-last_send_time = time.monotonic()
-@app.route("/control/<x>/<y>")
-def control(x, y):
-  global last_send_time
-  x,y = float(x), float(y)
-  x = max(-1, min(1, x))
-  y = max(-1, min(1, y))
-  dat = messaging.new_message('testJoystick')
-  dat.testJoystick.axes = [y,x]
-  dat.testJoystick.buttons = [False]
-  pm.send('testJoystick', dat)
-  last_send_time = time.monotonic()
+@app.route("/ping")
+def c():
   return ""
+
+last_send_time = time.monotonic()
+@app.route("/control/<y>")
+def control(y):
+  global last_send_time
+  y = int(y)
+  if y > 0 and y <= vmax:
+    mem.set(y)
+    last_send_time = time.monotonic()
+    return ""
+  else:
+    return ""
 
 @app.route("/<path:name>")
 def b(name):
@@ -38,11 +41,8 @@ def handle_timeout():
   while 1:
     this_time = time.monotonic()
     if (last_send_time+0.5) < this_time:
+      mem.set(vmax)
       #print("timeout, no web in %.2f s" % (this_time-last_send_time))
-      dat = messaging.new_message('testJoystick')
-      dat.testJoystick.axes = [0,0]
-      dat.testJoystick.buttons = [False]
-      pm.send('testJoystick', dat)
     time.sleep(0.1)
 
 def main():
