@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import Nav from "./components/Nav"
 function useInterval(callback, delay) {
   const savedCallback = useRef();
 
@@ -72,6 +73,7 @@ function App() {
   const title = "manual set speed"
   return (
   <>
+    <Nav />
     <div className="text-nord5 w-full mt-3 flex flex-col items-center justify-between">
       <h1 className="text-4xl">{title}</h1>
       <div className="flex flex-col items-center">
