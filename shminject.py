@@ -22,7 +22,7 @@ class Hook:
 class Mem:
   __mem = None
   name = "fff"
-  size = 1
+  size = 2 # just in case i start testing this at same time as maneuver thing
   vinit = 28 # vmax
   def set(self, v):
     #buf[:4] = bytearray([22, 33, 44, 55])
@@ -30,7 +30,10 @@ class Mem:
   def get(self):
     return self.__mem.buf[0]
   def __create_or_connect(self):
-    self.__mem = shared_memory.SharedMemory(name=self.name, create=True, size=self.size)
+    try:
+      self.__mem = shared_memory.SharedMemory(name=self.name, create=True, size=self.size)
+    except:
+      self.__mem = shared_memory.SharedMemory(name=self.name, create=False, size=self.size)
   def __cleanup(self):
     self.__mem.close()
     if self.__shouldunlink:
