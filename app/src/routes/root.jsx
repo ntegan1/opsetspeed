@@ -1,46 +1,22 @@
 import { Link, Outlet } from "react-router-dom"
+function Nav() {
+  const c = "bg-nord1 flex items-center justify-between"
+  const clinkalll = " text-nord5 hover:bg-nord5 hover:text-nord0 py-1 px-2 "
+  const clinkhome = " text-nord5 bg-nord10  py-1 px-2 "
+  return (
+    <div className={c}>
+      <div className="flex items-center">
+      <p className={clinkhome}>Home</p>
+      <p className={clinkalll}>Set Speed</p>
+      </div>
+    </div>
+  )
+}
 export default function Root() {
   return (
     <>
-      <div id="sidebar">
-        <h1>React Router Contacts</h1>
-        <div>
-          <form id="search-form" role="search">
-            <input
-              id="q"
-              aria-label="Search contacts"
-              placeholder="Search"
-              type="search"
-              name="q"
-            />
-            <div
-              id="search-spinner"
-              aria-hidden
-              hidden={true}
-            />
-            <div
-              className="sr-only"
-              aria-live="polite"
-            ></div>
-          </form>
-          <form method="post">
-            <button type="submit">New</button>
-          </form>
-        </div>
-        <nav>
-          <ul>
-            <li>
-              <Link to={`contacts/1`}>Your Name</Link>
-            </li>
-            <li>
-              <Link to={`contacts/2`}>Your Friend</Link>
-            </li>
-          </ul>
-        </nav>
-      </div>
-      <div id="detail">
-        <Outlet />
-      </div>
+      <Nav />
+      <Outlet />
     </>
-  );
+  )
 }

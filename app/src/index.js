@@ -1,12 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-//import App from './App';
+import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 import Root from './routes/root';
-import Contact from './routes/contact';
-import ErrorPage from './route-error-page'
+import ErrorPage from './error-page-route'
 
 import {
   createBrowserRouter,
@@ -22,15 +21,14 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "/contacts/:contactId",
-        element: <Contact />,
+        path: "/setspeed",
+        element: <App />,
       },
     ],
   },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-    //<App />
 root.render(
   <React.StrictMode>
     <RouterProvider router={router} />
