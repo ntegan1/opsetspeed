@@ -94,15 +94,14 @@ function Slider() {
   const c = "[&::-webkit-slider-thumb]:bg-nord8 [&::-webkit-slider-thumb]:w-12 [&::-webkit-slider-thumb]:h-12 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:[appearance:none] [&::-webkit-slider-thumb]:[-webkit-appearance:none] [-webkit-user-select:none] -translate-x-[134px] translate-y-[134px] -rotate-90 h-[32px] w-[300px] bg-gray-700 rounded-lg appearance-none cursor-pointer "
   useInterval(int_loop, intervalDelay)
   useEffect(() => {
-    sendalwaysish(vmax)
+    const a = () => {sendalwaysish(vmax)}
+    a()
     console.log("reload")
     return () => {
       sendalways(vmax)
       console.log("unmount")
     }
-  })
-  // TODO is this right?
-  //}, [])
+  }, [])
   if (!serverRunning)
     return (
       <>
