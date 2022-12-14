@@ -6,6 +6,7 @@ import reportWebVitals from './reportWebVitals';
 
 import Root from './routes/root';
 import ErrorPage from './error-page-route'
+import Routes, {loader as routesLoader} from './routes/routes';
 
 import {
   createBrowserRouter,
@@ -23,6 +24,12 @@ const router = createBrowserRouter([
   {
     path: "/setspeed",
     element: <App />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/routes",
+    element: <Routes />,
+    loader: routesLoader,
     errorElement: <ErrorPage />,
   },
 ]);
