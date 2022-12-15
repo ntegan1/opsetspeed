@@ -29,7 +29,7 @@ last_send_time = time.monotonic()
 def control(y):
   global last_send_time
   y = int(y)
-  if y > 0 and y <= vmax:
+  if y >= 0 and y <= vmax:
     mem.set(y)
     last_send_time = time.monotonic()
   response = Response("", status=200,)
@@ -49,7 +49,7 @@ def b(name):
 def handle_timeout():
   while 1:
     this_time = time.monotonic()
-    if (last_send_time+0.5) < this_time:
+    if (last_send_time+1.1) < this_time:
       mem.set(vmax)
       #print("timeout, no web in %.2f s" % (this_time-last_send_time))
     time.sleep(0.1)
