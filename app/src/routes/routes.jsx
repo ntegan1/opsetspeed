@@ -2,13 +2,13 @@ import Nav from "../components/Nav"
 import { useLoaderData } from "react-router-dom"
 import { useState } from "react"
 export async function loader() {
-  const res = await fetch("http://192.168.1.122:5000/routelistv2")
+  const res = await fetch("/routelistv2")
   const routes = await res.json()
   return { routes }
 }
 
 function RouteVideo({routename, segment, onended, camera}) {
-  const url = "http://192.168.1.122:5000/"
+  const url = "/"
   return (
   <>
     <video onEnded={onended} muted autoPlay controls key={segment + camera}>
