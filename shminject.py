@@ -6,7 +6,7 @@ import atexit
 
 class Hook:
   def overriding(self):
-    return bool(self.mem.buf[1])
+    return self.mem.overriding()
   def update(self, v_cruise_mps):
     vmaxmps = 28.5
     if v_cruise_mps * CV.MS_TO_MPH > vmaxmps:
@@ -28,7 +28,9 @@ class Mem:
   def set(self, v):
     #buf[:4] = bytearray([22, 33, 44, 55])
     self.__mem.buf[0] = v
-    self.__mem.buf[1] = v < vinit
+    self.__mem.buf[1] = v < self.vinit
+  def overriding(self):
+    return bool(self.__mem.buf[1])
   def get(self):
     return self.__mem.buf[0]
   def __create_or_connect(self):
