@@ -5,16 +5,16 @@ from multiprocessing import shared_memory
 import atexit
 
 class Hook:
+  def overriding(self):
+    return bool(self.mem.buf[1])
   def update(self, v_cruise_mps):
     vmaxmps = 28.5
     if v_cruise_mps * CV.MS_TO_MPH > vmaxmps:
-      print("nooverride")
       return v_cruise_mps
 
     vmph = self.mem.get()
     if vmph <= v_cruise_mps:
       vmps = vmph * CV.MPH_TO_MS
-      print("override")
       return vmps
     return v_cruise_mps
   def __init__(self, autounlink=True):
@@ -28,6 +28,7 @@ class Mem:
   def set(self, v):
     #buf[:4] = bytearray([22, 33, 44, 55])
     self.__mem.buf[0] = v
+    self.__mem.buf[1] = v < vinit
   def get(self):
     return self.__mem.buf[0]
   def __create_or_connect(self):
