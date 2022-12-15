@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+def unzip():
+  from zipfile import ZipFile as z
+  with z("buildtgz.zip", "r") as f:
+    f.extractall()
+if __name__ == "__main__":
+  unzip()
