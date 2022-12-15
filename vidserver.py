@@ -5,6 +5,14 @@ import subprocess
 import threading
 from flask import Flask, send_from_directory, Response
 
+build_dir="/data/openpilot/opsetspeed/build"
+static_dir=build_dir + "/static"
+allowed_build = ["asset-manifest.json", "favicon.ico", "logo192.png", "logo512.png", "robots.txt"]
+app = Flask(__name__, static_folder=static_dir)
+@app.route("/")
+def aa():
+  return send_from_directory(build_dir, "index.html")
+
 def get_routes():
   proc = subprocess.Popen(
     ["/data/openpilot/optool/bin/lsroute",
@@ -43,7 +51,6 @@ app = Flask(__name__,)
 
 @app.route("/fcamera/<segment>")
 def g(segment):
-  print(segment)
   proc = subprocess.Popen(
     ["ffmpeg",
       "-f", "hevc",
@@ -65,7 +72,6 @@ def g(segment):
 
 @app.route("/dcamera/<segment>")
 def h(segment):
-  print(segment)
   proc = subprocess.Popen(
     ["ffmpeg",
       "-f", "hevc",
@@ -88,7 +94,6 @@ def h(segment):
 
 @app.route("/ecamera/<segment>")
 def i(segment):
-  print(segment)
   proc = subprocess.Popen(
     ["ffmpeg",
       "-f", "hevc",
@@ -110,7 +115,6 @@ def i(segment):
 
 @app.route("/qcamera/<segment>")
 def j(segment):
-  print(segment)
   proc = subprocess.Popen(
     ["ffmpeg",
       "-r", "20",
@@ -129,13 +133,6 @@ def j(segment):
   return response
 
 
-@app.route("/routelist")
-def d():
-  routes = list_to_json("routes", get_routes())
-  response = Response(routes, status=200, mimetype='application/json',)
-  response.headers.add('Access-Control-Allow-Origin', '*')
-  return response
-
 @app.route("/routelistv2")
 def f():
   routes = list_to_json("routes", get_routes_v2())
@@ -143,75 +140,10 @@ def f():
   response.headers.add('Access-Control-Allow-Origin', '*')
   return response
 
-@app.route("/segmentlist")
-def e():
-  routes = list_to_json("segments", get_segments())
-  response = Response(routes, status=200, mimetype='application/json',)
-  response.headers.add('Access-Control-Allow-Origin', '*')
-  return response
-
-@app.route("/a.mp4")
-def b():
-  proc = subprocess.Popen(
-    ["ffmpeg",
-      "-f", "hevc",
-      "-r", "20",
-      "-i", "fcamera.hevc",
-      "-c", "copy",
-      "-map", "0",
-      "-vtag", "hvc1",
-      "-f", "mp4",
-      "-movflags", "empty_moov",
-      "-",
-    ], stdout=subprocess.PIPE
-    #], stdout=subprocess.PIPE, stderr=open("/dev/null")
-  )
-  dat = proc.stdout.read()
-  response = Response(dat, status=200,)
-  response.headers.add('Access-Control-Allow-Origin', '*')
-  return response
-aindex="""<html>
-  <body>
-    hi
-<video id="myvideo" width="320" height="240" controls style="background:black">
-  <source class="active" src="a.mp4" type="video/mp4" />
-  <source src="http://www.w3schools.com/html/movie.mp4" type="video/mp4" />
-</video>
-  </body>
-    <script>
-var myvid = document.getElementById('myvideo');
-
-myvid.addEventListener('ended', function(e) {
-  // get the active source and the next video source.
-  // I set it so if there's no next, it loops to the first one
-  var activesource = document.querySelector("#myvideo source.active");
-  var nextsource = document.querySelector("#myvideo source.active + source") || document.querySelector("#myvideo source:first-child");
-  
-  // deactivate current source, and activate next one
-  activesource.className = "";
-  nextsource.className = "active";
-  
-  // update the video source and play
-  myvid.src = nextsource.src;
-  myvid.play();
-});
-    </script>
-</html>
-"""
-
-@app.route("/")
-def c():
-  return aindex
-
-@app.route("/a")
-def a():
-  proc = subprocess.Popen(
-    ["echo", "hihihi"], stdout=subprocess.PIPE, stderr=open("/dev/null")
-  )
-  dat = proc.stdout.read()
-  response = Response(dat, status=200,)
-  response.headers.add('Access-Control-Allow-Origin', '*')
-  return response
+@app.route("/<path:name>")
+def ab(name):
+  allowed = name in allowed_build
+  return send_from_directory(build_dir, name) if allowed else "f"
 
 def main():
   app.run(host="0.0.0.0")

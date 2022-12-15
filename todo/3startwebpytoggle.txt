@@ -1,2 +1,0 @@
-
-make a toggle that builds and starts the server
