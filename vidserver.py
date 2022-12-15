@@ -6,11 +6,12 @@ import threading
 from flask import Flask, send_from_directory, Response
 
 build_dir="/data/openpilot/opsetspeed/build"
-static_dir=build_dir + "/static"
-allowed_build = ["asset-manifest.json", "favicon.ico", "logo192.png", "logo512.png", "robots.txt"]
-app = Flask(__name__, static_folder=static_dir)
+app = Flask(__name__)
+
+
 @app.route("/")
-def aa():
+def aaa():
+  print("slash")
   return send_from_directory(build_dir, "index.html")
 
 def get_routes():
@@ -46,8 +47,6 @@ def list_to_json(name, listt):
   #]
   js = {"name": name, "list": listt}
   return json.dumps(js)
-
-app = Flask(__name__,)
 
 @app.route("/fcamera/<segment>")
 def g(segment):
@@ -142,8 +141,18 @@ def f():
 
 @app.route("/<path:name>")
 def ab(name):
-  allowed = name in allowed_build
-  return send_from_directory(build_dir, name) if allowed else "f"
+  print("serving " +name)
+  return send_from_directory(build_dir, name)
+
+@app.route("/static/js/<path:name>")
+def ae(name):
+  print("serving " +name)
+  return send_from_directory(build_dir + "/static/js", name)
+
+@app.route("/static/css/<path:name>")
+def af(name):
+  print("serving " +name)
+  return send_from_directory(build_dir + "/static/css", name)
 
 def main():
   app.run(host="0.0.0.0")
