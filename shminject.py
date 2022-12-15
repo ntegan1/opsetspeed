@@ -5,19 +5,20 @@ from multiprocessing import shared_memory
 import atexit
 
 class Hook:
-  mem = None
   def update(self, v_cruise_mps):
-    vmaxmps = self.mem.vinit * CV.MPH_TO_MS
+    vmaxmps = 28.5 * CV.MPH_TO_MS
     if v_cruise_mps * CV.MS_TO_MPH > vmaxmps:
+      print("nooverride")
       return v_cruise_mps
 
     vmph = self.mem.get()
     if vmph <= v_cruise_mps:
       vmps = vmph * CV.MPH_TO_MS
+      print("override")
       return vmps
     return v_cruise_mps
-  def __init__(self):
-    self.mem = Mem(autounlink=True)
+  def __init__(self, autounlink=True):
+    self.mem = Mem(autounlink=autounlink)
 
 class Mem:
   __mem = None
