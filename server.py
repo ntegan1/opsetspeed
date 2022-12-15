@@ -5,9 +5,7 @@ import threading
 from flask import Flask, send_from_directory, Response
 from opsetspeed.shminject import Mem
 
-build_dir="./build"
-if not os.path.exists(build_dir):
-  os.system("make -C /data/openpilot/opsetspeed")
+build_dir="/data/openpilot/opsetspeed/build"
 static_dir=build_dir + "/static"
 allowed_build = ["asset-manifest.json", "favicon.ico", "logo192.png", "logo512.png", "robots.txt"]
 app = Flask(__name__, static_folder=static_dir)
