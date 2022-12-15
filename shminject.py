@@ -6,7 +6,7 @@ import atexit
 
 class Hook:
   def update(self, v_cruise_mps):
-    vmaxmps = 28.5 * CV.MPH_TO_MS
+    vmaxmps = 28.5
     if v_cruise_mps * CV.MS_TO_MPH > vmaxmps:
       print("nooverride")
       return v_cruise_mps
