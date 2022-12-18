@@ -5,9 +5,10 @@ from multiprocessing import shared_memory
 import atexit
 
 class Hook:
-  mem = None
+  def overriding(self):
+    return self.mem.overriding()
   def update(self, v_cruise_mps):
-    vmaxmps = self.mem.vinit * CV.MPH_TO_MS
+    vmaxmps = 28.5
     if v_cruise_mps * CV.MS_TO_MPH > vmaxmps:
       return v_cruise_mps
 
@@ -16,8 +17,9 @@ class Hook:
       vmps = vmph * CV.MPH_TO_MS
       return vmps
     return v_cruise_mps
-  def __init__(self):
-    self.mem = Mem(autounlink=True)
+  def __init__(self, autounlink=True):
+    self.mem = Mem(autounlink=autounlink)
+    self.mem.set(28)
 
 class Mem:
   __mem = None
@@ -27,6 +29,9 @@ class Mem:
   def set(self, v):
     #buf[:4] = bytearray([22, 33, 44, 55])
     self.__mem.buf[0] = v
+    self.__mem.buf[1] = v < self.vinit and v >= 0
+  def overriding(self):
+    return bool(self.__mem.buf[1])
   def get(self):
     return self.__mem.buf[0]
   def __create_or_connect(self):
@@ -41,7 +46,7 @@ class Mem:
   def __init__(self, autounlink=False):
     self.__shouldunlink = autounlink
     self.__create_or_connect()
-    self.set(self.vinit) # todo maybe dont always do this
+    #self.set(self.vinit) # todo maybe dont always do this
     atexit.register(self.__cleanup)
 
 def main():
